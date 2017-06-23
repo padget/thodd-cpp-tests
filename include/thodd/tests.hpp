@@ -53,6 +53,15 @@ thodd
         } ;
 
     constexpr auto toot = given("coucou", "kiki") > when("poutou") > then("toto") ;
+
+    template<typename ... givens_t>
+    constexpr int interpret(
+        decltype(given) const & __given)
+    {
+        return 2 ;
+    }
+
+    constexpr auto i = interpret(given) ;
 }
  
 #endif
