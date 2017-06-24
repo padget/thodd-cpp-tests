@@ -30,38 +30,54 @@ thodd
     > then([](auto&& __res){return __res == 2});
 */
 
+    enum class tests
+    {
+        given, 
+        when, 
+        then
+    } ;
 
     extern constexpr auto given = 
         [](auto&&... __ctxs)
         { 
             return 
-            as_dsl_node([=] { }) ;
+            as_dsl_node(
+                std::integral_constant<tests, tests::given>{}, 
+                [=] { }) ;
         } ; 
 
     extern constexpr auto when = 
         [] (auto&&... __actions) 
         { 
             return
-            as_dsl_node([=] { }) ;
+            as_dsl_node(
+                std::integral_constant<tests, tests::when>{},
+                [=] { }) ;
          } ;
 
     extern constexpr auto then = 
         [](auto&&... __asserts)
         { 
             return
-            as_dsl_node([=] { }) ;
+            as_dsl_node(
+                std::integral_constant<tests, tests::then>{},
+                [=] { }) ;
         } ;
 
     constexpr auto toot = given("coucou", "kiki") > when("poutou") > then("toto") ;
 
-    template<typename ... givens_t>
-    constexpr int interpret(
-        decltype(given) const & __given)
+    template<
+        typename ... givens_t>
+    constexpr int 
+    interpret(
+        dsl_node<tests, tests::given, auto> const & __given, 
+        dsl_node<tests, tests::when, auto> const & __when, 
+        dsl_node<tests, tests::then, auto> const & __then)
     {
         return 2 ;
     }
 
-    constexpr auto i = interpret(given) ;
+    constexpr auto i = interpret(given(), when(), then()) ;
 }
  
 #endif
