@@ -41,7 +41,7 @@ thodd
         [](auto&&... __ctxs)
         { 
             return 
-            as_dsl_node(
+            as_node(
                 std::integral_constant<tests, tests::given>{}, 
                 [=] { }) ;
         } ; 
@@ -50,7 +50,7 @@ thodd
         [] (auto&&... __actions) 
         { 
             return
-            as_dsl_node(
+            as_node(
                 std::integral_constant<tests, tests::when>{},
                 [=] { }) ;
          } ;
@@ -59,25 +59,24 @@ thodd
         [](auto&&... __asserts)
         { 
             return
-            as_dsl_node(
+            as_node(
                 std::integral_constant<tests, tests::then>{},
                 [=] { }) ;
         } ;
 
-    constexpr auto toot = given("coucou", "kiki") > when("poutou") > then("toto") ;
 
-    template<
-        typename ... givens_t>
-    constexpr int 
+    constexpr auto toot = given("coucou") > when("coucou") > given() ;
+
+   /* constexpr int 
     interpret(
-        dsl_node<tests, tests::given, auto> const & __given, 
-        dsl_node<tests, tests::when, auto> const & __when, 
-        dsl_node<tests, tests::then, auto> const & __then)
+        thodd::expression<
+            node<tests, tests::given, auto>, 
+            node<tests, tests::then, auto>> const&)
     {
         return 2 ;
     }
 
-    constexpr auto i = interpret(given(), when(), then()) ;
+    constexpr auto i = interpret(given() > when()) ;*/
 }
  
 #endif
