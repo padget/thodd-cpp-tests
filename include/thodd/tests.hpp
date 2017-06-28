@@ -72,6 +72,8 @@ thodd
     template <typename act_t>
     using then_node = test_node<tests::then, act_t> ;
 
+    // TODO Dans le when pouvoir faire appel au résultat précedent et dans le then pouvoir faire appel au résultat d'un des appels du when.
+
     struct test
     {
         constexpr auto
