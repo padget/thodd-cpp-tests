@@ -8,28 +8,7 @@
 
 namespace
 thodd
-{ 
-    // given().an_egg().
-    //     and().some_milk().
-    //     and().the_ingredient( "flour" );
-    // when().the_cook_mangles_everything_to_a_dough().
-    //     and().the_cook_fries_the_dough_in_a_pan();
-    // then().the_resulting_meal_is_a_pancake();
-
-    /* 
-    given(ann_egg, some_milk, the_ingredient("flour"))
-    > when(the_cook_mangles_everything_to_a_dough, 
-           the_cook_fries_the_dough_in_a_pan)
-    > then(the_resulting_meal_is_a_pancake)
-
-    given(
-        []{return egg();}, 
-        []{return milk();}, 
-        [](auto&& __name){return [=__name]{return __name;}; })
-    > when([](auto&&... __ingres){return __ingres +...;})
-    > then([](auto&& __res){return __res == 2});
-*/
-
+{    
     enum class tests
     {
         given, 
@@ -38,45 +17,81 @@ thodd
     } ;
 
     extern constexpr auto given = 
-        [](auto&&... __ctxs)
+        [] (auto&&... __args) 
         { 
             return 
             as_node(
                 std::integral_constant<tests, tests::given>{}, 
-                [=] { }) ;
+                [&] () 
+                { 
+                    return 
+                    std::make_tuple(
+                        static_cast<decltype(__args)&&>(__args)...) ;
+                }) ;
         } ; 
 
-    extern constexpr auto when = 
-        [] (auto&&... __actions) 
+    constexpr auto when =
+        [] (auto&& ... __actions) 
         { 
             return
             as_node(
                 std::integral_constant<tests, tests::when>{},
-                [=] { }) ;
+                [&] () 
+                { 
+                    return 
+                    std::make_tuple(
+                        static_cast<decltype(__actions)&&>(__actions)...) ; 
+                }) ;
          } ;
 
-    extern constexpr auto then = 
-        [](auto&&... __asserts)
+    constexpr auto then = 
+        [] (auto&& ... __asserts)
         { 
             return
             as_node(
                 std::integral_constant<tests, tests::then>{},
-                [=] { }) ;
+                [&] () 
+                { 
+                    return 
+                    std::make_tuple(
+                        static_cast<decltype(__asserts)>(__asserts)...) ; 
+                }) ;
         } ;
 
+    template<
+        tests id_c, 
+        typename act_t>
+    using test_node = node<tests, id_c, act_t> ;
 
-    constexpr auto toot = given("coucou") > when("coucou") > given() ;
+    template <typename act_t>
+    using given_node = test_node<tests::given, act_t> ;
 
-   /* constexpr int 
-    interpret(
-        thodd::expression<
-            node<tests, tests::given, auto>, 
-            node<tests, tests::then, auto>> const&)
+    template <typename act_t>
+    using when_node = test_node<tests::when, act_t> ; 
+
+    template <typename act_t>
+    using then_node = test_node<tests::then, act_t> ;
+
+    struct test
     {
-        return 2 ;
-    }
+        constexpr auto
+        interpret(
+            given_node<auto> const& __given, 
+            when_node<auto> const& __when,
+            then_node<auto> const& __then)
+        {
+            auto&& __args = std::apply(
+                    [](auto&&... __acts) { return std::make_tuple(__acts()...) ; },
+                     __given.act()) ;
+            auto&& __called = __when.act() ;
+            auto&& __result = std::apply(__called, __args) ;
+            auto&& __test = __then.act() ;
+            __test(__result) ;
 
-    constexpr auto i = interpret(given() > when()) ;*/
+
+            return 6 ;
+        }
+    } ; 
 }
- 
+
 #endif
