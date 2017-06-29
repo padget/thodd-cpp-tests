@@ -72,7 +72,42 @@ thodd
     template <typename act_t>
     using then_node = test_node<tests::then, act_t> ;
 
-    // TODO Dans le when pouvoir faire appel au résultat précedent et dans le then pouvoir faire appel au résultat d'un des appels du when.
+
+    template<
+        size_t idx>
+    constexpr auto
+    ___call (
+        auto&& __calls, 
+        auto&& __args) 
+    {
+        if constexpr (idx < std::tuple_size_v<std::decay_t<decltype(__calls)>>)
+        {
+            auto&& __call = std::get<idx>(static_cast<decltype(__calls)&&>(__calls)) ; 
+            using res_t = decltype(std::apply(__call, static_cast<decltype(__args)&&>(__args))) ;
+
+            if constexpr (std::is_void_v<std::decay_t<res_t>>)
+                return 
+                call<idx + 1>(
+                    static_cast<decltype(__calls)&&>(__calls), 
+                    static_cast<decltype(__args)&&>(__args)) ;
+            else 
+            {    
+                auto&& __res = std::apply(__call, static_cast<decltype(__args)&&>(__args)) ;
+                return 
+                    std::tuple_cat(
+                        std::make_tuple(__res), 
+                        call<idx + 1>(
+                            static_cast<decltype(__calls)&&>(__calls), 
+                            std::tuple_cat(
+                                static_cast<decltype(__args)&&>(__args), 
+                                std::make_tuple(__res)))) ; 
+            }
+        }
+        else 
+            return std::make_tuple() ;
+
+    }
+
 
     struct test
     {
@@ -81,17 +116,23 @@ thodd
             given_node<auto> const& __given, 
             when_node<auto> const& __when,
             then_node<auto> const& __then)
-        {
+        {        
+            // tuple of args
             auto&& __args = std::apply(
                     [](auto&&... __acts) { return std::make_tuple(__acts()...) ; },
                      __given.act()) ;
-            auto&& __called = __when.act() ;
-            auto&& __result = std::apply(__called, __args) ;
-            auto&& __test = __then.act() ;
-            __test(__result) ;
 
+            // tuple of results 
+            auto&& __results = __call<0>(__when.act(), static_cast<decltype(__args)&&>(__args)) ; 
 
-            return 6 ;
+            // tuple of assertions results
+            std::apply([](auto&&... __ress){([](auto&& __res){std::cout << __res << std::endl;}(__ress), ...) ;}, __results);
+
+            auto&& __assertsres = std::apply(
+                [&__results] (auto&& ... __assert) { return std::make_tuple(std::apply(__assert, __results)...) ; } , 
+                __then.act()) ;
+     
+            return std::apply([] (auto&& ... __assres) { return (__assres && ...) ; }, __assertsres ) ;
         }
     } ; 
 }
