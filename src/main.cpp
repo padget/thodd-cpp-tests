@@ -5,14 +5,19 @@
 #include <thodd/tests.hpp>
 #include <thodd/functional.hpp>
 
-int add(int a, int b)
+auto add(auto a, auto b)
 {
     return a + b ;
 }
 
-int minus(int a, int b)
+auto minus(auto a, auto b)
 {
     return a - b ;
+}
+
+auto div(auto a, auto b)
+{
+    return a / b ;
 }
 
 int main (int i, char* c[])
@@ -22,17 +27,11 @@ try
     
     std::cout << std::boolalpha << 
         go<test>{}(
-            given(
-                [] { return 1 ; }, 
-                [] { return 2 ; }) > 
-            when(
-                bind(&::add, $0, $1), 
-                bind(&::minus, $2, $1), 
-                $3 ++ ) > 
-            then(
-                $0 == val(3),
-                $1 == val(1), 
-                $2 == val(2))) << std::endl ;
+            given(val(1), val(2), nothing()) > 
+            when(bind(&::add, $0, $1), 
+                 bind(&::minus, $2, $1)) > 
+            then($0 == val(3), 
+                 $1 == val(1))) << std::endl ;
 
     return 0;
 }

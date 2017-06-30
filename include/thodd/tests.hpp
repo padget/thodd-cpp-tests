@@ -132,7 +132,10 @@ thodd
                 [&__results] (auto&& ... __assert) { return std::make_tuple(std::apply(__assert, __results)...) ; } , 
                 __then.act()) ;
      
-            return std::apply([] (auto&& ... __assres) { return (__assres && ...) ; }, __assertsres ) ;
+            return 
+            std::apply(
+                [] (auto&& ... __assres) { return (__assres && ...) ; }, 
+                __assertsres ) ;
         }
     } ; 
 }
