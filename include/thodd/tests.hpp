@@ -87,7 +87,7 @@ thodd
 
             if constexpr (std::is_void_v<std::decay_t<res_t>>)
                 return 
-                call<idx + 1>(
+                ___call<idx + 1>(
                     static_cast<decltype(__calls)&&>(__calls), 
                     static_cast<decltype(__args)&&>(__args)) ;
             else 
@@ -96,7 +96,7 @@ thodd
                 return 
                     std::tuple_cat(
                         std::make_tuple(__res), 
-                        call<idx + 1>(
+                        ___call<idx + 1>(
                             static_cast<decltype(__calls)&&>(__calls), 
                             std::tuple_cat(
                                 static_cast<decltype(__args)&&>(__args), 
@@ -119,15 +119,13 @@ thodd
         {        
             // tuple of args
             auto&& __args = std::apply(
-                    [](auto&&... __acts) { return std::make_tuple(__acts()...) ; },
+                    [] (auto&&... __acts) { return std::make_tuple(__acts()...) ; },
                      __given.act()) ;
 
             // tuple of results 
-            auto&& __results = __call<0>(__when.act(), static_cast<decltype(__args)&&>(__args)) ; 
+            auto&& __results = ___call<0>(__when.act(), static_cast<decltype(__args)&&>(__args)) ; 
 
             // tuple of assertions results
-            std::apply([](auto&&... __ress){([](auto&& __res){std::cout << __res << std::endl;}(__ress), ...) ;}, __results);
-
             auto&& __assertsres = std::apply(
                 [&__results] (auto&& ... __assert) { return std::make_tuple(std::apply(__assert, __results)...) ; } , 
                 __then.act()) ;
