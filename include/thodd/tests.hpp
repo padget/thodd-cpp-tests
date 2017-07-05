@@ -9,7 +9,7 @@
 namespace
 thodd
 {    
-    enum class tests
+    enum class test_node_type
     {
         given, 
         when, 
@@ -22,7 +22,7 @@ thodd
     { 
         return 
         as_node(
-            std::integral_constant<tests, tests::given>{}, 
+            std::integral_constant<test_node_type, test_node_type::given>{}, 
             [&] () 
             { 
                 return 
@@ -37,7 +37,7 @@ thodd
     { 
         return
         as_node(
-            std::integral_constant<tests, tests::when>{},
+            std::integral_constant<test_node_type, test_node_type::when>{},
             [&] () 
             { 
                 return 
@@ -52,7 +52,7 @@ thodd
     { 
         return
         as_node(
-            std::integral_constant<tests, tests::then>{},
+            std::integral_constant<test_node_type, test_node_type::then>{},
             [&] () 
             { 
                 return 
@@ -62,18 +62,18 @@ thodd
     } ;
 
     template<
-        tests id_c, 
+        test_node_type id_c, 
         typename act_t>
-    using test_node = node<tests, id_c, act_t> ;
+    using test_node = node<test_node_type, id_c, act_t> ;
 
     template <typename act_t>
-    using given_node = test_node<tests::given, act_t> ;
+    using given_node = test_node<test_node_type::given, act_t> ;
 
     template <typename act_t>
-    using when_node = test_node<tests::when, act_t> ; 
+    using when_node = test_node<test_node_type::when, act_t> ; 
 
     template <typename act_t>
-    using then_node = test_node<tests::then, act_t> ;
+    using then_node = test_node<test_node_type::then, act_t> ;
 
 
     template<
@@ -125,7 +125,11 @@ thodd
             {
                 // tuple of args
                 auto&& __args = std::apply(
-                        [] (auto&&... __acts) { return std::make_tuple(__acts()...) ; },
+                        [] (auto&&... __acts) 
+                        { 
+                            return 
+                            std::make_tuple(__acts()...) ; 
+                        },
                         __given.act()) ;
 
                 // tuple of results 
@@ -133,7 +137,12 @@ thodd
 
                 // tuple of assertions results
                 auto&& __assertsres = std::apply(
-                    [&__results] (auto&& ... __assert) { return std::make_tuple(std::apply(__assert, __results)...) ; } , 
+                    [&__results] (auto&& ... __assert) 
+                    {
+                        return 
+                        std::make_tuple(
+                            std::apply(__assert, __results)...) ; 
+                    } , 
                     __then.act()) ;
         
                 return 
@@ -143,6 +152,10 @@ thodd
             } ; 
         }
     } ; 
+
+
+    extern constexpr auto 
+    $test = dsl<test>{} ;
 }
 
 #endif
