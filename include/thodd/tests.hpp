@@ -16,47 +16,50 @@ thodd
         then
     } ;
 
-    extern constexpr auto given = 
-        [] (auto&&... __args) 
-        { 
-            return 
-            as_node(
-                std::integral_constant<tests, tests::given>{}, 
-                [&] () 
-                { 
-                    return 
-                    std::make_tuple(
-                        static_cast<decltype(__args)&&>(__args)...) ;
-                }) ;
-        } ; 
+    extern constexpr auto 
+    given = 
+    [] (auto&&... __args) 
+    { 
+        return 
+        as_node(
+            std::integral_constant<tests, tests::given>{}, 
+            [&] () 
+            { 
+                return 
+                std::make_tuple(
+                    static_cast<decltype(__args)&&>(__args)...) ;
+            }) ;
+    } ; 
 
-    constexpr auto when =
-        [] (auto&& ... __actions) 
-        { 
-            return
-            as_node(
-                std::integral_constant<tests, tests::when>{},
-                [&] () 
-                { 
-                    return 
-                    std::make_tuple(
-                        static_cast<decltype(__actions)&&>(__actions)...) ; 
-                }) ;
-         } ;
+    extern constexpr auto 
+    when =
+    [] (auto&& ... __actions) 
+    { 
+        return
+        as_node(
+            std::integral_constant<tests, tests::when>{},
+            [&] () 
+            { 
+                return 
+                std::make_tuple(
+                    static_cast<decltype(__actions)&&>(__actions)...) ; 
+            }) ;
+    } ;
 
-    constexpr auto then = 
-        [] (auto&& ... __asserts)
-        { 
-            return
-            as_node(
-                std::integral_constant<tests, tests::then>{},
-                [&] () 
-                { 
-                    return 
-                    std::make_tuple(
-                        static_cast<decltype(__asserts)>(__asserts)...) ; 
-                }) ;
-        } ;
+    extern constexpr auto 
+    then = 
+    [] (auto&& ... __asserts)
+    { 
+        return
+        as_node(
+            std::integral_constant<tests, tests::then>{},
+            [&] () 
+            { 
+                return 
+                std::make_tuple(
+                    static_cast<decltype(__asserts)>(__asserts)...) ; 
+            }) ;
+    } ;
 
     template<
         tests id_c, 
@@ -112,28 +115,32 @@ thodd
     struct test
     {
         constexpr auto
-        interpret(
+        get_interpretor(
             given_node<auto> const& __given, 
             when_node<auto> const& __when,
-            then_node<auto> const& __then)
+            then_node<auto> const& __then) const
         {        
-            // tuple of args
-            auto&& __args = std::apply(
-                    [] (auto&&... __acts) { return std::make_tuple(__acts()...) ; },
-                     __given.act()) ;
-
-            // tuple of results 
-            auto&& __results = ___call<0>(__when.act(), static_cast<decltype(__args)&&>(__args)) ; 
-
-            // tuple of assertions results
-            auto&& __assertsres = std::apply(
-                [&__results] (auto&& ... __assert) { return std::make_tuple(std::apply(__assert, __results)...) ; } , 
-                __then.act()) ;
-     
             return 
-            std::apply(
-                [] (auto&& ... __assres) { return (__assres && ...) ; }, 
-                __assertsres ) ;
+            [&] () 
+            {
+                // tuple of args
+                auto&& __args = std::apply(
+                        [] (auto&&... __acts) { return std::make_tuple(__acts()...) ; },
+                        __given.act()) ;
+
+                // tuple of results 
+                auto&& __results = ___call<0>(__when.act(), static_cast<decltype(__args)&&>(__args)) ; 
+
+                // tuple of assertions results
+                auto&& __assertsres = std::apply(
+                    [&__results] (auto&& ... __assert) { return std::make_tuple(std::apply(__assert, __results)...) ; } , 
+                    __then.act()) ;
+        
+                return 
+                std::apply(
+                    [] (auto&& ... __assres) { return (__assres && ...) ; }, 
+                    __assertsres ) ;
+            } ; 
         }
     } ; 
 }
