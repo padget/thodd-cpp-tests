@@ -57,7 +57,7 @@ thodd
             { 
                 return 
                 std::make_tuple(
-                    static_cast<decltype(__asserts)>(__asserts)...) ; 
+                    static_cast<decltype(__asserts)&&>(__asserts)...) ; 
             }) ;
     } ;
 
@@ -121,7 +121,7 @@ thodd
             then_node<auto> const& __then) const
         {        
             return 
-            [&] () 
+            [=] () 
             {
                 // tuple of args
                 auto&& __args = std::apply(
